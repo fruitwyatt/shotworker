@@ -19,6 +19,7 @@ export default function AppRoutes() {
         <Route path="tools" element={<Navigate to="/" replace />} />
         <Route path="tools/gif-background-remover" element={<Navigate to="/" replace />} />
         <Route path="tools/image-background-remover" element={<Navigate to="/background-remover" replace />} />
+        <Route path="tools/background-remover" element={<Navigate to="/background-remover" replace />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
