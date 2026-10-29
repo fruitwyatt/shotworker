@@ -2,78 +2,104 @@
 
 ## URLs
 
-- **Pages (production):** https://shotworker.pages.dev
-- **Latest deployment:** https://390c569c.shotworker.pages.dev
-- **Repo:** https://github.com/fruitwyatt/shotworker
-- **Git SHA:** `b838d7254540625b7fdc103769447f78930fa729` (branch `main`)
+- **Production:** https://shotworker.com (www → apex 301)
+- **Pages:** https://shotworker.pages.dev · this deployment: https://46e9af0e.shotworker.pages.dev
+- **Repo:** https://github.com/fruitwyatt/shotworker (branch `main`)
+- **Deployed code commit:** `90a0ed3` — "Final IA: GIF tool at /, image tool at /background-remover, prerendered premium pages"
 - **Cloudflare Pages project:** `shotworker` (account `08c8b4657124c4adff729031926b450f`)
 
-## What works (verified end-to-end in headless Chromium)
+## Routes (final IA, 2026-10-29)
 
-- **Home** (`/`) — hero, tool hub cards (2 live + 4 coming-soon), value props,
-  how-it-works, FAQ, CTA band.
-- **Image Background Remover** (`/tools/image-background-remover`) — e2e tested:
-  PNG upload → BiRefNet-lite (WASM backend in headless; WebGPU preferred on
-  real GPUs) → transparent PNG with real alpha (verified: corner a=0, subject
-  a=255) + color-background PNG with live recolor.
-- **GIF Background Remover** (`/tools/gif-background-remover`) — e2e tested:
-  4-frame GIF → per-frame matting → APNG (transparent, verified), transparent
-  GIF, animated WebP, color-background GIF with live recolor.
-- Model download progress + frame progress + Cancel + Retry; ~94 MB model is
-  cached via Cache API after first run.
-- Drag-drop upload; free limits enforced in UI and worker (≤8 MB, ≤48 GIF
-  frames w/ truncate+warn, longest side ≤512 px w/ auto-downscale).
-- Privacy page (`/privacy`): files processed in-browser, never uploaded.
-- SEO: per-route titles/descriptions/canonical/OG, `robots.txt` (Allow + sitemap),
-  `sitemap.xml`, `og.png`, no `X-Robots-Tag` (indexing allowed).
-- `_headers`: COOP same-origin / COEP credentialless / CORP cross-origin —
-  verified live (required for ORT SharedArrayBuffer).
-- `_redirects`: `https://www.shotworker.com/* → https://shotworker.com/:splat` 301.
-- Worker smoke: `0` `window.pako` references in built bundles
-  (`scripts/smoke-worker-bundle.mjs`); vendored UPNG APNG encode verified
-  (`scripts/smoke-apng.mjs`).
-- Analytics: `src/lib/analytics.ts` fires `page_view`, `upload`,
-  `process_start`, `process_success`, `process_fail`, `download`,
-  `limit_exceeded` — verified via console stub. Set `VITE_GA_ID=G-XXXXXXXXXX`
-  at build time to enable GA4.
+| URL | Page | Prerendered file |
+|---|---|---|
+| `/` | **GIF Background Remover** (homepage, primary cluster) | `dist/index.html` |
+| `/background-remover` | **Background Remover for Product Photos** (image tool) | `dist/background-remover.html` |
+| `/privacy` | Privacy Policy | `dist/privacy.html` |
+| anything else | 404 page (`noindex`, real HTTP 404) | `dist/404.html` |
 
-## Deferred / roadmap
+`public/_redirects` (301):
 
-- White Background Photos, AI Scene Generator, Ghost Mannequin, Batch Studio
-  (cards on home are disabled "Soon" placeholders; architecture supports
-  adding worker paths under `/tools/*`).
-- Higher-resolution output (current cap 512 px longest side for free in-browser
-  inference).
-- Server-side matting fallback for oversized inputs.
-- Real GA4 property (stub + env hook shipped).
+```
+/tools/gif-background-remover   → /
+/tools/image-background-remover → /background-remover   (+ trailing-slash variants)
+/tools, /tools/, /tools/*       → /
+https://www.shotworker.com/*    → https://shotworker.com/:splat   (kept for defense in depth)
+```
 
-## DNS ask (Cloudflare)
+Note: Pages flags the absolute www line as invalid and skips it. www → apex is
+handled by the Cloudflare zone redirect and still works (check 6 below).
+`/tools` hub page (`Home.tsx`) has been removed. The SPA has no live `/tools/*` routes, only
+dev-server `<Navigate>`s.
 
-Bind `shotworker.com` (apex) **and** `www.shotworker.com` as custom domains on
-the Pages project `shotworker`. The `www → apex` 301 is already handled by
-`public/_redirects` once both hostnames are attached. Apex on Cloudflare uses
-CNAME flattening — add a CNAME for `shotworker.com` → `shotworker.pages.dev`
-in the zone, plus attach both hostnames in Pages → Custom domains.
+## Premium page structure (per `/workspace/docs/premium-tool-page-standard.md`)
 
-## Deploy command
+Each tool page sits on a single URL and holds the tool, the landing copy and the results:
+
+- First screen: H1, a one-line pitch, the free limits and the Dropzone. Users can start right away and results appear in place.
+- 9 H2 landing sections below the tool, plus an FAQ H2 (10 H2 total, 1 H1): what it does, before/after,
+  how it works (3 steps), who it's for (ecommerce), export formats, privacy, limits,
+  tips, related tool cross-link (`/` ↔ `/background-remover`).
+- FAQ: 8 items on `/`, 7 on `/background-remover`.
+- JSON-LD types: WebApplication, FAQPage, HowTo, Organization (+ WebSite on `/`, +
+  BreadcrumbList on `/background-remover`, with visible crumbs `Home → Background Remover` using a real `<a href="/">`).
+- **Single data source:** `src/content/gifPage.ts` / `src/content/imagePage.ts` drive
+  visible copy, FAQ, breadcrumbs, `<title>`/description and the schema (`src/content/schema.ts`).
+- Before/after: small illustrative samples in `public/examples/`, generated by
+  `npm run gen:examples` (bouncing-bottle GIF → transparent APNG; mug photo → transparent PNG).
+- No competitor names. No model or runtime jargon in any user-visible copy. Raw worker
+  exceptions now map to product-tone messages; the raw text goes to the console only.
+- Lazy model load on first upload and the "Preparing…" StatusCard are unchanged.
+
+## How prerender works
+
+`npm run build` runs `tsc --noEmit && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs`
+
+1. `src/routes.tsx` holds the route tree. The client (`BrowserRouter`) and the server (`StaticRouter`) both use it.
+2. `src/entry-server.tsx` exports `render(url)` (`react-dom/server` `renderToString`)
+   and the `pages` list (url, output file, title, description, canonical).
+3. `scripts/prerender.mjs` renders each page and injects the body into `#root` of the
+   built `dist/index.html` template. It also rewrites `<title>`, the description,
+   canonical and og:* tags, writes the file and asserts that an `<h1>` exists. `dist-ssr/` is then deleted.
+4. `src/main.tsx` calls `hydrateRoot` when `#root` already has content (production)
+   and `createRoot` otherwise (dev). Headless Chromium showed no hydration warnings.
+5. Pages are written as `name.html` (not `name/index.html`), so Cloudflare Pages serves the
+   extension-less canonical `/background-remover` with a 200. `/background-remover/` → 308 → `/background-remover`.
+   Because `404.html` exists, unknown paths now return a real 404 instead of an SPA soft-200.
+
+## Verification (2026-10-29, against production after deploy)
+
+| # | Command | Result |
+|---|---|---|
+| 1 | `curl -sL https://shotworker.com/ \| rg -n 'GIF Background Remover\|<h1\|How do I remove'` | PASS: `<h1>GIF Background Remover`, title, FAQ "How do I remove the background from a GIF?" all in the raw HTML (no JS) |
+| 2 | `curl -sL https://shotworker.com/ \| rg -i 'matting\|94 ?MB\|cached by'` | PASS: no matches |
+| 3 | `curl -sI https://shotworker.com/tools/gif-background-remover` | PASS: `301`, `location: /` |
+| 4 | `curl -sI https://shotworker.com/tools/image-background-remover` | PASS: `301`, `location: /background-remover` (`/tools`, `/tools/` → `301 /`) |
+| 5 | `curl -sL https://shotworker.com/background-remover \| rg -n 'Background Remover\|<h1\|FAQ'` | PASS: title, `<h1>Background Remover for Product Photos`, "Background remover FAQ", BreadcrumbList; 0 jargon hits |
+| 6 | `curl -sI https://www.shotworker.com/` | PASS: `301`, `location: https://shotworker.com/` |
+| 7 | `npm run smoke` | PASS: APNG smoke OK; `0 window.pako references across 2 bundles` |
+
+Also checked:
+- Jargon gate: `rg -i 'matting|94 ?MB|cached by (your )?browser|BiRefNet' src/pages src/components src/content index.html public dist -g '!*.map' -g '!dist/assets/bg.worker*'` → no hits. The only remaining hit is the model URL / cache name inside the worker bundle, which is never rendered.
+- `/nope` → 404 (noindex). `/privacy` → 200. The sitemap lists only `/`, `/background-remover` and `/privacy`.
+- COOP/COEP/CORP headers are live, and `crossOriginIsolated === true`.
+- Production e2e in headless Chromium (`/tmp/sw_e2e.py https://shotworker.com`):
+  - PNG on `/background-remover` → `Done — 240×240` (transparent PNG download).
+  - 12-frame GIF on `/` → `Done — 12 frames`; APNG/GIF/Color/WebP tabs all present.
+  - Client-side nav updates title and canonical. No visible jargon and no hydration errors.
+
+## Deploy
 
 ```bash
 export CLOUDFLARE_ACCOUNT_ID=08c8b4657124c4adff729031926b450f
-npx wrangler@4 pages deploy dist --project-name=shotworker --commit-dirty=true
+npm run build && npx wrangler@4 pages deploy dist --project-name=shotworker --commit-dirty=true
 ```
 
+Local Pages emulation (routing + `_redirects` + `_headers`):
+`npx wrangler@4 pages dev dist --port 8788 --compatibility-date=2026-05-01`
 
-## DNS status (updated by ship agent)
+## Deferred / roadmap
 
-Already created on zone `shotworker.com` (id `515a7a2f658b95cf8ef46603b186d7d0`):
-
-| Name | Type | Content | Proxied |
-|------|------|---------|---------|
-| `shotworker.com` | CNAME | `shotworker.pages.dev` | yes (CNAME flattening) |
-| `www.shotworker.com` | CNAME | `shotworker.com` | yes |
-
-Pages custom domains attached on project `shotworker`:
-- `shotworker.com` — verification active; HTTPS **200** live
-- `www.shotworker.com` — re-attached; SSL may still be initializing (intermittent 522 until cert active). `_redirects` has www→apex 301 once both hostnames are fully active.
-
-**For cf teammate:** domain bind mostly done by ship agent. Please confirm both custom domains show **Active** in Pages → Custom domains, and www→apex 301 works. If www stuck pending, re-validate in dashboard.
+- Run the ai-seo-extractor score per page (standard §5) and iterate.
+- Higher-resolution output (free in-browser cap is currently 512 px on the longest side).
+- Real GA4 property (set `VITE_GA_ID` at build time).
+- Future tools get their own premium URL only after confirming a distinct keyword cluster (no cannibalization).
