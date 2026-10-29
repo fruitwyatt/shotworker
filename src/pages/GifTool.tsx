@@ -1,13 +1,13 @@
 import { useCallback, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
 import { useBgWorker } from '../lib/useBgWorker';
 import type { WorkerInMessage, WorkerOutMessage } from '../worker/protocol';
-import { MAX_FILE_BYTES, MAX_FRAMES, MAX_SIDE, DEFAULT_BG } from '../worker/protocol';
+import { MAX_FILE_BYTES, DEFAULT_BG } from '../worker/protocol';
 import { usePageMeta } from '../lib/meta';
 import { track } from '../lib/analytics';
 import Dropzone from '../components/Dropzone';
 import StatusCard from '../components/StatusCard';
-import Faq from '../components/Faq';
+import { LandingBody, ToolHeader } from '../components/Landing';
+import { gifPage } from '../content/gifPage';
 
 const TOOL = 'gif';
 
@@ -40,32 +40,8 @@ function fmtMB(n: number) {
   return (n / 1024 / 1024).toFixed(1);
 }
 
-const FAQ = [
-  {
-    q: 'How do I remove the background from a GIF?',
-    a: 'Drop your GIF above. ShotWorker removes the background on every frame in your browser and lets you download a transparent APNG, GIF or WebP — no signup.',
-  },
-  {
-    q: 'Why APNG instead of GIF?',
-    a: 'GIF transparency is 1-bit — pixels are either fully opaque or fully transparent, which makes soft edges (hair, shadows, glass) look jagged. APNG keeps full soft transparency and plays anywhere a GIF does.',
-  },
-  {
-    q: 'Is there a size limit?',
-    a: `Yes — up to 8 MB, ${MAX_FRAMES} frames and ${MAX_SIDE}px on the longest side. Longer GIFs are truncated with a warning, and larger dimensions are downscaled automatically.`,
-  },
-  {
-    q: 'Are my GIFs uploaded?',
-    a: 'No. Everything runs on your device. Your file is never sent to our servers. The first run may take a moment to prepare; later runs are faster.',
-  },
-];
-
 export default function GifTool() {
-  const { pathname } = useLocation();
-  const isHome = pathname === '/';
-  usePageMeta(
-    'GIF Background Remover — Free, In-Browser',
-    'Remove backgrounds from animated GIFs free with AI. Export transparent APNG, GIF or WebP — runs entirely in your browser, no uploads, no signup.',
-  );
+  usePageMeta(gifPage.title, gifPage.description);
 
   const [result, setResult] = useState<Result | null>(null);
   const [originalUrl, setOriginalUrl] = useState<string | null>(null);
@@ -237,20 +213,7 @@ export default function GifTool() {
 
   return (
     <div className="wrap tool-page">
-      {!isHome && (
-        <nav className="crumbs">
-          <Link to="/">Home</Link> / <span>GIF Background Remover</span>
-        </nav>
-      )}
-      <h1>GIF Background Remover</h1>
-      <p className="tool-sub">
-        Remove the background from animated GIFs — export transparent APNG, GIF or WebP.
-        Free, private, no signup.
-      </p>
-      <p className="limits-line">
-        Limits: ≤ {fmtMB(MAX_FILE_BYTES)} MB · ≤ {MAX_FRAMES} frames (longer GIFs are
-        truncated) · longest side ≤ {MAX_SIDE}px (auto-downscaled)
-      </p>
+      <ToolHeader page={gifPage} />
 
       <Dropzone
         accept="image/gif,.gif"
@@ -353,10 +316,7 @@ export default function GifTool() {
         </div>
       )}
 
-      <section className="section tool-faq">
-        <h2 className="section-title">GIF background removal — FAQ</h2>
-        <Faq items={FAQ} />
-      </section>
+      <LandingBody page={gifPage} />
     </div>
   );
 }

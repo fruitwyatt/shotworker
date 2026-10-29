@@ -18,7 +18,7 @@ never uploaded for inference.
 ```bash
 npm install
 npm run dev      # COOP/COEP headers are set in vite.config.ts
-npm run build    # tsc --noEmit + vite build
+npm run build    # tsc --noEmit + vite build + SSR prerender (scripts/prerender.mjs)
 npm run smoke    # APNG encode + worker-bundle window.pako checks
 npm run preview  # serve dist/ locally
 ```
@@ -31,8 +31,18 @@ npx wrangler@4 pages deploy dist --project-name=shotworker --commit-dirty=true
 ```
 
 `public/_headers` (cross-origin isolation, required for ORT SharedArrayBuffer),
-`public/_redirects` (www → apex 301), `robots.txt` and `sitemap.xml` ship with
-the build.
+`public/_redirects` (old `/tools/*` → new routes 301, www → apex), `robots.txt`
+and `sitemap.xml` ship with the build.
+
+## Routes & prerender
+
+- `/` — GIF Background Remover (homepage) · `/background-remover` — image tool ·
+  `/privacy`. Unknown paths → prerendered `404.html` (noindex).
+- Page copy, FAQ and JSON-LD come from `src/content/*Page.ts` (single source).
+- `npm run build` also runs `vite build --ssr src/entry-server.tsx` and
+  `scripts/prerender.mjs`, which writes `dist/index.html`,
+  `dist/background-remover.html`, `dist/privacy.html`, `dist/404.html` with the
+  full rendered body; the client hydrates it (`hydrateRoot`).
 
 ## Analytics
 

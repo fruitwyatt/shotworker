@@ -441,7 +441,9 @@ a.btn:hover {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
-  counter-reset: step;
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
 }
 
 .step {
@@ -618,6 +620,21 @@ a.btn:hover {
 
 .crumbs a {
   color: var(--muted);
+}
+
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.crumbs li + li::before {
+  content: '/';
+  margin-right: 6px;
+  color: #a3a6bd;
 }
 
 .tool-page h1 {
@@ -897,6 +914,74 @@ a.btn:hover {
   margin-bottom: 20px;
 }
 
+/* ---------- landing body (below the tool) ---------- */
+.landing {
+  margin-top: 56px;
+  max-width: 880px;
+}
+
+.landing-section {
+  padding: 34px 0;
+  border-top: 1px solid var(--line);
+}
+
+.landing-section h2 {
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 14px;
+}
+
+.landing-section > p {
+  color: #3c3f58;
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+
+.landing-list {
+  margin: 6px 0 0;
+  padding-left: 22px;
+  color: #3c3f58;
+  font-size: 15.5px;
+}
+
+.landing-list li {
+  margin-bottom: 6px;
+}
+
+.landing .faq {
+  margin-top: 6px;
+}
+
+.example {
+  margin: 16px 0 0;
+}
+
+.example .preview-row {
+  margin-top: 0;
+}
+
+.example figcaption {
+  font-size: 13.5px;
+  margin-top: 10px;
+}
+
+.preview-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.example .checker img {
+  width: 240px;
+  height: 240px;
+  image-rendering: auto;
+}
+
 /* ---------- prose (privacy) ---------- */
 .page-prose {
   padding: 44px 20px 70px;
@@ -943,9 +1028,12 @@ a.btn:hover {
     grid-template-columns: 1fr;
     gap: 26px;
   }
+  .header-inner {
+    gap: 10px;
+  }
   .site-nav a {
-    font-size: 13px;
-    padding: 7px 9px;
+    font-size: 12.5px;
+    padding: 6px 7px;
   }
   .header-cta {
     display: none;
@@ -958,5 +1046,11 @@ a.btn:hover {
   }
   .dropzone {
     padding: 40px 18px;
+  }
+}
+
+@media (max-width: 420px) {
+  .header-inner .logo span {
+    display: none;
   }
 }

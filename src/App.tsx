@@ -1,4 +1,5 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 
 function Logo() {
   return (
@@ -22,9 +23,18 @@ function Logo() {
   );
 }
 
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
+  useEffect(() => {
+    if (!hash) window.scrollTo(0, 0);
+  }, [pathname, hash]);
+  return null;
+}
+
 export default function App() {
   return (
     <div className="site">
+      <ScrollToTop />
       <header className="site-header">
         <div className="wrap header-inner">
           <Logo />
@@ -32,8 +42,7 @@ export default function App() {
             <NavLink to="/" end>
               GIF BG Remover
             </NavLink>
-            <NavLink to="/tools/image-background-remover">Image BG Remover</NavLink>
-            <NavLink to="/tools">All tools</NavLink>
+            <NavLink to="/background-remover">Image BG Remover</NavLink>
           </nav>
           <Link to="/" className="btn btn-primary btn-small header-cta">
             Try free
@@ -47,15 +56,12 @@ export default function App() {
         <div className="wrap footer-grid">
           <div className="footer-brand">
             <Logo />
-            <p>AI Product Photography &amp; Image Tools. Everything runs in your browser — files never leave your device.</p>
+            <p>AI Product Photography &amp; Image Tools. Everything runs on your device — files never leave it.</p>
           </div>
           <div className="footer-col">
             <h4>Tools</h4>
             <Link to="/">GIF Background Remover</Link>
-            <Link to="/tools/image-background-remover">Image Background Remover</Link>
-            <Link to="/tools">Tool hub</Link>
-            <span className="muted">White Background — soon</span>
-            <span className="muted">AI Scenes — soon</span>
+            <Link to="/background-remover">Background Remover for Product Photos</Link>
           </div>
           <div className="footer-col">
             <h4>Company</h4>
@@ -64,7 +70,7 @@ export default function App() {
           </div>
         </div>
         <div className="wrap footer-bottom">
-          <span>© {new Date().getFullYear()} ShotWorker. All rights reserved.</span>
+          <span suppressHydrationWarning>© {new Date().getFullYear()} ShotWorker. All rights reserved.</span>
         </div>
       </footer>
     </div>

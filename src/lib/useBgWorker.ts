@@ -75,7 +75,8 @@ export function useBgWorker(handlers: WorkerHandlers) {
     });
     w.onmessage = (e: MessageEvent<WorkerOutMessage>) => handleMessage(e.data);
     w.onerror = (e) => {
-      setStatus({ kind: 'error', message: e.message || 'Worker error', retriable: true });
+      console.warn('[worker] onerror:', e.message);
+      setStatus({ kind: 'error', message: 'Something went wrong — please try again.', retriable: true });
     };
     workerRef.current = w;
     return w;

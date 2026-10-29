@@ -1,10 +1,8 @@
 import { usePageMeta } from '../lib/meta';
+import { privacyMeta } from '../content/meta';
 
 export default function Privacy() {
-  usePageMeta(
-    'Privacy',
-    'ShotWorker processes images entirely in your browser. Learn what we collect — spoiler: your files never leave your device.',
-  );
+  usePageMeta(privacyMeta.title, privacyMeta.description);
 
   return (
     <div className="wrap wrap-narrow page-prose">
@@ -13,16 +11,17 @@ export default function Privacy() {
 
       <h2>Your files never leave your device</h2>
       <p>
-        ShotWorker tools run the AI model directly in your browser. Images and GIFs you
-        process are decoded, matted and encoded locally — they are <strong>never uploaded
-        to our servers</strong> for inference or storage. Closing the tab discards them.
+        ShotWorker tools process your images and GIFs on your own device, inside your
+        browser. Your files are read, processed and saved locally — they are{' '}
+        <strong>never uploaded to our servers</strong> and never stored by us. Closing the
+        tab discards them.
       </p>
 
-      <h2>What gets downloaded to your device</h2>
+      <h2>First use</h2>
       <p>
-        On first use, the matting model (~94 MB) is fetched from a public model CDN and
-        cached by your browser so later runs start instantly. This request contains only
-        the model URL — none of your files.
+        The first time you use a tool, your browser fetches the files the tool needs to run
+        on your device from public content delivery networks. This may take a moment; later runs are faster. These requests never
+        include your images, GIFs or anything about them.
       </p>
 
       <h2>Analytics</h2>
@@ -35,8 +34,9 @@ export default function Privacy() {
 
       <h2>Cookies &amp; storage</h2>
       <p>
-        The site uses browser storage only for the model cache and (optionally) an
-        analytics identifier. There are no advertising trackers.
+        The site uses browser storage only to keep the tool files on your device for faster
+        later runs and (optionally) an anonymous analytics identifier. There are no
+        advertising trackers.
       </p>
 
       <h2>Contact</h2>

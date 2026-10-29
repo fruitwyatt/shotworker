@@ -1,1 +1,8 @@
+/tools/gif-background-remover / 301
+/tools/gif-background-remover/ / 301
+/tools/image-background-remover /background-remover 301
+/tools/image-background-remover/ /background-remover 301
+/tools / 301
+/tools/ / 301
+/tools/* / 301
 https://www.shotworker.com/* https://shotworker.com/:splat 301

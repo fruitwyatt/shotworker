@@ -1,13 +1,13 @@
 import { useCallback, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useBgWorker } from '../lib/useBgWorker';
 import type { WorkerInMessage, WorkerOutMessage } from '../worker/protocol';
-import { MAX_FILE_BYTES, MAX_SIDE, DEFAULT_BG } from '../worker/protocol';
+import { MAX_FILE_BYTES, DEFAULT_BG } from '../worker/protocol';
 import { usePageMeta } from '../lib/meta';
 import { track } from '../lib/analytics';
 import Dropzone from '../components/Dropzone';
 import StatusCard from '../components/StatusCard';
-import Faq from '../components/Faq';
+import { LandingBody, ToolHeader } from '../components/Landing';
+import { imagePage } from '../content/imagePage';
 
 const TOOL = 'image';
 
@@ -32,30 +32,8 @@ function fmtMB(n: number) {
 
 const ACCEPTED = ['image/png', 'image/jpeg', 'image/webp', 'image/avif', 'image/bmp'];
 
-const FAQ = [
-  {
-    q: 'How do I remove a photo background for free?',
-    a: 'Drop a PNG, JPG or WebP above. ShotWorker separates the subject from the background in your browser so you can download a transparent PNG — no signup, no watermark.',
-  },
-  {
-    q: 'Is this good enough for product photos?',
-    a: 'Yes — soft edges like fabric, hair, glass and packaging detail are preserved far better than magic-wand or chroma-key tools.',
-  },
-  {
-    q: 'Are my photos uploaded anywhere?',
-    a: 'No. Everything runs on your device. Your photos never leave your machine. The first run may take a moment to prepare; later runs are faster.',
-  },
-  {
-    q: 'Why is the result 512px?',
-    a: `The free in-browser pipeline caps the longest side at ${MAX_SIDE}px so it runs fast on any device. Larger images are downscaled automatically — higher-resolution output is on the roadmap.`,
-  },
-];
-
 export default function ImageTool() {
-  usePageMeta(
-    'Image Background Remover — Free Transparent PNG',
-    'Remove image backgrounds free with AI. Upload a product photo and download a transparent PNG — runs entirely in your browser, private, no signup.',
-  );
+  usePageMeta(imagePage.title, imagePage.description);
 
   const [result, setResult] = useState<Result | null>(null);
   const [originalUrl, setOriginalUrl] = useState<string | null>(null);
@@ -209,18 +187,7 @@ export default function ImageTool() {
 
   return (
     <div className="wrap tool-page">
-      <nav className="crumbs">
-        <Link to="/">Home</Link> / <span>Tools</span> / <span>Image Background Remover</span>
-      </nav>
-      <h1>Image Background Remover</h1>
-      <p className="tool-sub">
-        Upload a product photo and get a clean transparent PNG with soft, studio-quality
-        edges. Free, private, no signup.
-      </p>
-      <p className="limits-line">
-        Limits: ≤ {fmtMB(MAX_FILE_BYTES)} MB · longest side ≤ {MAX_SIDE}px (auto-downscaled)
-        · PNG, JPG, WebP, AVIF
-      </p>
+      <ToolHeader page={imagePage} />
 
       <Dropzone
         accept="image/png,image/jpeg,image/webp,image/avif,image/bmp,.png,.jpg,.jpeg,.webp,.avif"
@@ -318,10 +285,7 @@ export default function ImageTool() {
         </div>
       )}
 
-      <section className="section tool-faq">
-        <h2 className="section-title">Image background removal — FAQ</h2>
-        <Faq items={FAQ} />
-      </section>
+      <LandingBody page={imagePage} />
     </div>
   );
 }

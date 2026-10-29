@@ -1,9 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { track } from './analytics';
-
-const SITE = 'ShotWorker';
-const ORIGIN = 'https://shotworker.com';
+import { ORIGIN } from '../content/types';
 
 function setMeta(selector: string, attr: string, value: string) {
   let el = document.head.querySelector<HTMLMetaElement | HTMLLinkElement>(selector);
@@ -21,12 +19,12 @@ function setMeta(selector: string, attr: string, value: string) {
   el.setAttribute(attr, value);
 }
 
-/** Per-page SEO meta: document title, description, canonical, OG basics. */
+/** Per-page SEO meta (client-side navigation). `title` is the full document title. */
 export function usePageMeta(title: string, description: string) {
   const { pathname } = useLocation();
   useEffect(() => {
     const url = `${ORIGIN}${pathname}`;
-    document.title = pathname === '/' ? title : `${title} — ${SITE}`;
+    document.title = title;
     setMeta('meta[name="description"]', 'content', description);
     setMeta('link[rel="canonical"]', 'href', url);
     setMeta('meta[property="og:title"]', 'content', document.title);

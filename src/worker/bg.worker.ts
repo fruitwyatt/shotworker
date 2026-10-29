@@ -253,9 +253,16 @@ globalThis.onmessage = async (e: MessageEvent<WorkerInMessage>) => {
       );
     }
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
+    const raw = e instanceof Error ? e.message : String(e);
     // Model download / init failures are retriable.
-    const retriable = /download|fetch|network|session|provider|HTTP/i.test(message);
+    const retriable = /download|fetch|network|session|provider|backend|HTTP/i.test(raw);
+    // Raw engine errors stay in the console; the UI gets product-tone copy.
+    console.warn('[worker] error:', raw);
+    const message = retriable
+      ? 'Couldn’t get ready — check your connection and try again.'
+      : /no frames/i.test(raw)
+        ? 'This GIF has no frames to process.'
+        : 'Couldn’t process this file — please try a different one.';
     post({ type: 'error', message, retriable });
   }
 };

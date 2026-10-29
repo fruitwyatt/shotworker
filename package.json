@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
     "preview": "vite preview",
-    "smoke": "node scripts/smoke-apng.mjs && node scripts/smoke-worker-bundle.mjs"
+    "smoke": "node scripts/smoke-apng.mjs && node scripts/smoke-worker-bundle.mjs",
+    "gen:examples": "node scripts/gen-examples.mjs"
   },
   "dependencies": {
     "gifenc": "^1.0.3",
