@@ -113,6 +113,7 @@ export default function GifTool() {
     useBgWorker({ onDone, onRecolorDone });
 
   const busy =
+    status.kind === 'downloading' ||
     status.kind === 'decoding' ||
     status.kind === 'processing' ||
     status.kind === 'encoding';
