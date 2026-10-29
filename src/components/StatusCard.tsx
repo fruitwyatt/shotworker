@@ -1,24 +1,18 @@
 import type { Status } from '../lib/useBgWorker';
 
-function fmtMB(n: number) {
-  return (n / 1024 / 1024).toFixed(1);
-}
-
 interface Props {
   status: Status;
   warnings: string[];
-  backend: string | null;
   busy: boolean;
   onCancel: () => void;
   onRetry: () => void;
-  idleHint: string;
+  idleHint?: string;
   doneLine?: string;
 }
 
 export default function StatusCard({
   status,
   warnings,
-  backend,
   busy,
   onCancel,
   onRetry,
@@ -27,39 +21,40 @@ export default function StatusCard({
 }: Props) {
   return (
     <div className="status-card">
-      {status.kind === 'idle' && <p className="status-line muted">{idleHint}</p>}
+      {status.kind === 'idle' && idleHint ? (
+        <p className="status-line muted">{idleHint}</p>
+      ) : null}
       {status.kind === 'downloading' && (
         <>
           <p className="status-line">
-            Downloading AI model… {fmtMB(status.loaded)} / {fmtMB(status.total)} MB (
-            {Math.round((status.loaded / status.total) * 100)}%)
+            Preparing… {Math.round((status.loaded / Math.max(status.total, 1)) * 100)}%
           </p>
           <div className="progress">
             <div
               className="progress-fill"
-              style={{ width: `${(status.loaded / status.total) * 100}%` }}
+              style={{ width: `${(status.loaded / Math.max(status.total, 1)) * 100}%` }}
             />
           </div>
-          <p className="status-sub muted">One-time ~94 MB download, cached by your browser.</p>
+          <p className="status-sub muted">First use loads once, then it’s faster.</p>
         </>
       )}
-      {status.kind === 'decoding' && <p className="status-line">Decoding…</p>}
+      {status.kind === 'decoding' && <p className="status-line">Reading your file…</p>}
       {status.kind === 'processing' && (
         <>
           <p className="status-line">
-            Removing background — {status.current}/{status.total}
-            {status.total > 1 ? ' frames' : ''}
+            Removing background
+            {status.total > 1 ? ` — ${status.current}/${status.total} frames` : '…'}
           </p>
           <div className="progress">
             <div
               className="progress-fill"
-              style={{ width: `${(status.current / status.total) * 100}%` }}
+              style={{ width: `${(status.current / Math.max(status.total, 1)) * 100}%` }}
             />
           </div>
         </>
       )}
-      {status.kind === 'encoding' && <p className="status-line">Encoding result…</p>}
-      {status.kind === 'done' && <p className="status-line ok">{doneLine ?? 'Done.'}</p>}
+      {status.kind === 'encoding' && <p className="status-line">Finishing up…</p>}
+      {status.kind === 'done' && <p className="status-line ok">{doneLine ?? 'Done — ready to download.'}</p>}
       {status.kind === 'error' && (
         <p className="status-line error">
           {status.message}{' '}
@@ -79,9 +74,6 @@ export default function StatusCard({
         <button className="btn btn-ghost btn-small" onClick={onCancel}>
           Cancel
         </button>
-      )}
-      {backend && status.kind !== 'done' && (
-        <p className="status-sub muted">Engine: {backend}</p>
       )}
     </div>
   );

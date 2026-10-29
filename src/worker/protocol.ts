@@ -1,7 +1,7 @@
 // Messages exchanged between the main thread and the background-removal worker.
 
 export type WorkerInMessage =
-  // Pre-download + warm the model session (called on mount and before each run).
+  // Optional warm (not used on page enter — model loads on first process*).
   | { type: 'warmup' }
   // Process a GIF file. `file` is the raw GIF bytes.
   | { type: 'process'; file: ArrayBuffer; fileName: string }

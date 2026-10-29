@@ -73,7 +73,7 @@ async function processImage(file: ArrayBuffer, mime: string) {
   if (detectAlreadyTransparent([img.frame])) {
     post({
       type: 'warn',
-      text: 'This image already has transparency — skipping heavy matting, keeping the original alpha (light pass only).',
+      text: 'This image already has transparency — keeping the original alpha.',
     });
     result = cleanupTransparent(img.frame);
   } else {
@@ -142,7 +142,7 @@ async function processGif(file: ArrayBuffer) {
     // erode the sprite; pass-through is never dirtier than the source.
     post({
       type: 'warn',
-      text: 'This GIF already has transparency — skipping heavy matting, keeping the original alpha (light pass only).',
+      text: 'This GIF already has transparency — keeping the original alpha.',
     });
     results = gif.frames.map((f) => cleanupTransparent(f));
   } else {

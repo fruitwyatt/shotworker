@@ -35,15 +35,15 @@ const ACCEPTED = ['image/png', 'image/jpeg', 'image/webp', 'image/avif', 'image/
 const FAQ = [
   {
     q: 'How do I remove a photo background for free?',
-    a: 'Drop a PNG, JPG or WebP into the tool above. An AI matting model running in your browser separates the subject from the background and you download a transparent PNG — no signup, no watermark.',
+    a: 'Drop a PNG, JPG or WebP above. ShotWorker separates the subject from the background in your browser so you can download a transparent PNG — no signup, no watermark.',
   },
   {
     q: 'Is this good enough for product photos?',
-    a: 'Yes — ShotWorker uses BiRefNet, a state-of-the-art matting model that preserves soft edges like fabric texture, hair, glass and packaging detail far better than magic-wand or chroma-key tools.',
+    a: 'Yes — soft edges like fabric, hair, glass and packaging detail are preserved far better than magic-wand or chroma-key tools.',
   },
   {
     q: 'Are my photos uploaded anywhere?',
-    a: 'No. The model is downloaded to your browser once (~94 MB, cached) and all processing happens on your device. Your photos never leave your machine.',
+    a: 'No. Everything runs on your device. Your photos never leave your machine. The first run may take a moment to prepare; later runs are faster.',
   },
   {
     q: 'Why is the result 512px?',
@@ -97,7 +97,7 @@ export default function ImageTool() {
     setRecoloring(false);
   }, []);
 
-  const { workerRef, status, setStatus, warnings, resetWarnings, backend, cancel } =
+  const { workerRef, status, setStatus, warnings, resetWarnings, cancel } =
     useBgWorker({ onImageDone, onImageRecolorDone });
 
   const busy =
@@ -170,10 +170,9 @@ export default function ImageTool() {
       track('process_start', { tool: TOOL, size_bytes: size, retry: true });
       send(buf, name, mime);
     } else {
-      workerRef.current?.postMessage({ type: 'warmup' } satisfies WorkerInMessage);
       setStatus({ kind: 'idle' });
     }
-  }, [send, workerRef, setStatus]);
+  }, [send, setStatus]);
 
   const onStartOver = useCallback(() => {
     [originalUrl, result?.pngUrl, result?.colorPngUrl].forEach((u) => {
@@ -212,8 +211,8 @@ export default function ImageTool() {
       </nav>
       <h1>Image Background Remover</h1>
       <p className="tool-sub">
-        Upload a product photo and get a clean transparent PNG — AI matting with soft,
-        studio-quality edges. Free, private, no signup.
+        Upload a product photo and get a clean transparent PNG with soft, studio-quality
+        edges. Free, private, no signup.
       </p>
       <p className="limits-line">
         Limits: ≤ {fmtMB(MAX_FILE_BYTES)} MB · longest side ≤ {MAX_SIDE}px (auto-downscaled)
@@ -224,25 +223,24 @@ export default function ImageTool() {
         accept="image/png,image/jpeg,image/webp,image/avif,image/bmp,.png,.jpg,.jpeg,.webp,.avif"
         disabled={busy}
         onFile={onPick}
-        title="Drop your photo here — or click to browse"
-        hint="PNG · JPG · WebP · AVIF up to 8 MB · processed on your device"
+        title="Drop a product photo, or click to choose"
+        hint="PNG · JPG · WebP · AVIF · up to 8 MB · private on your device"
       />
 
       <StatusCard
         status={status}
         warnings={warnings}
-        backend={backend}
         busy={busy}
         onCancel={() => {
           cancel();
           track('process_fail', { tool: TOOL, reason: 'cancelled' });
         }}
         onRetry={onRetry}
-        idleHint="Pick an image to start. The ~94 MB matting model downloads once and is cached by your browser."
+        idleHint="Drop a product photo, or click to choose"
         doneLine={
           result
-            ? `Done — ${result.width}×${result.height}, engine: ${result.backend}`
-            : 'Done.'
+            ? `Done — ${result.width}×${result.height}`
+            : 'Done — ready to download.'
         }
       />
 

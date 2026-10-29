@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useBgWorker } from '../lib/useBgWorker';
 import type { WorkerInMessage, WorkerOutMessage } from '../worker/protocol';
 import { MAX_FILE_BYTES, MAX_FRAMES, MAX_SIDE, DEFAULT_BG } from '../worker/protocol';
@@ -43,11 +43,11 @@ function fmtMB(n: number) {
 const FAQ = [
   {
     q: 'How do I remove the background from a GIF?',
-    a: 'Drop your GIF into the tool above. ShotWorker decodes every frame, runs an AI matting model locally in your browser, and re-encodes the result as a transparent APNG, GIF or WebP.',
+    a: 'Drop your GIF above. ShotWorker removes the background on every frame in your browser and lets you download a transparent APNG, GIF or WebP — no signup.',
   },
   {
     q: 'Why APNG instead of GIF?',
-    a: 'GIF transparency is 1-bit — pixels are either fully opaque or fully transparent, which makes soft edges (hair, shadows, glass) look jagged. APNG keeps full 8-bit alpha and plays anywhere a GIF does.',
+    a: 'GIF transparency is 1-bit — pixels are either fully opaque or fully transparent, which makes soft edges (hair, shadows, glass) look jagged. APNG keeps full soft transparency and plays anywhere a GIF does.',
   },
   {
     q: 'Is there a size limit?',
@@ -55,11 +55,13 @@ const FAQ = [
   },
   {
     q: 'Are my GIFs uploaded?',
-    a: 'No. The model is downloaded to your browser once and everything runs on your device. Your file is never sent to our servers.',
+    a: 'No. Everything runs on your device. Your file is never sent to our servers. The first run may take a moment to prepare; later runs are faster.',
   },
 ];
 
 export default function GifTool() {
+  const { pathname } = useLocation();
+  const isHome = pathname === '/';
   usePageMeta(
     'GIF Background Remover — Free, In-Browser',
     'Remove backgrounds from animated GIFs free with AI. Export transparent APNG, GIF or WebP — runs entirely in your browser, no uploads, no signup.',
@@ -107,7 +109,7 @@ export default function GifTool() {
     setRecoloring(false);
   }, []);
 
-  const { workerRef, status, setStatus, warnings, resetWarnings, backend, cancel } =
+  const { workerRef, status, setStatus, warnings, resetWarnings, cancel } =
     useBgWorker({ onDone, onRecolorDone });
 
   const busy =
@@ -173,10 +175,9 @@ export default function GifTool() {
         fileName: pendingFile.current.name,
       } satisfies WorkerInMessage);
     } else {
-      workerRef.current?.postMessage({ type: 'warmup' } satisfies WorkerInMessage);
       setStatus({ kind: 'idle' });
     }
-  }, [workerRef, setStatus]);
+  }, [setStatus]);
 
   const onStartOver = useCallback(() => {
     [originalUrl, result?.apngUrl, result?.gifUrl, result?.colorGifUrl, result?.webpUrl].forEach(
@@ -235,13 +236,15 @@ export default function GifTool() {
 
   return (
     <div className="wrap tool-page">
-      <nav className="crumbs">
-        <Link to="/">Home</Link> / <span>Tools</span> / <span>GIF Background Remover</span>
-      </nav>
+      {!isHome && (
+        <nav className="crumbs">
+          <Link to="/">Home</Link> / <span>GIF Background Remover</span>
+        </nav>
+      )}
       <h1>GIF Background Remover</h1>
       <p className="tool-sub">
-        Remove the background from animated GIFs with AI — export transparent APNG, GIF
-        or WebP. Free, in-browser, no signup.
+        Remove the background from animated GIFs — export transparent APNG, GIF or WebP.
+        Free, private, no signup.
       </p>
       <p className="limits-line">
         Limits: ≤ {fmtMB(MAX_FILE_BYTES)} MB · ≤ {MAX_FRAMES} frames (longer GIFs are
@@ -252,25 +255,24 @@ export default function GifTool() {
         accept="image/gif,.gif"
         disabled={busy}
         onFile={onPick}
-        title="Drop your GIF here — or click to browse"
-        hint="GIF up to 8 MB · processed on your device, never uploaded"
+        title="Drop a GIF, or click to choose"
+        hint="GIF up to 8 MB · private on your device"
       />
 
       <StatusCard
         status={status}
         warnings={warnings}
-        backend={backend}
         busy={busy}
         onCancel={() => {
           cancel();
           track('process_fail', { tool: TOOL, reason: 'cancelled' });
         }}
         onRetry={onRetry}
-        idleHint="Pick a GIF to start. The ~94 MB matting model downloads once and is cached by your browser."
+        idleHint="Drop a GIF, or click to choose"
         doneLine={
           result
-            ? `Done — ${result.frameCount} frames, ${result.width}×${result.height}, engine: ${result.backend}`
-            : 'Done.'
+            ? `Done — ${result.frameCount} frames, ${result.width}×${result.height}`
+            : 'Done — ready to download.'
         }
       />
 

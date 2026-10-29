@@ -30,7 +30,7 @@ async function downloadModelBytes(onProgress: ProgressFn): Promise<Uint8Array> {
     cache = await caches.open(CACHE_NAME);
     const hit = await cache.match(MODEL_URL);
     if (hit) {
-      onProgress(MODEL_BYTES, MODEL_BYTES);
+      // Cache hit — reuse silently (no download progress UI).
       return new Uint8Array(await hit.arrayBuffer());
     }
   } catch {

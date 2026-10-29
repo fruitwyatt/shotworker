@@ -29,10 +29,13 @@ export default function App() {
         <div className="wrap header-inner">
           <Logo />
           <nav className="site-nav">
+            <NavLink to="/" end>
+              GIF BG Remover
+            </NavLink>
             <NavLink to="/tools/image-background-remover">Image BG Remover</NavLink>
-            <NavLink to="/tools/gif-background-remover">GIF BG Remover</NavLink>
+            <NavLink to="/tools">All tools</NavLink>
           </nav>
-          <Link to="/tools/image-background-remover" className="btn btn-primary btn-small header-cta">
+          <Link to="/" className="btn btn-primary btn-small header-cta">
             Try free
           </Link>
         </div>
@@ -48,8 +51,9 @@ export default function App() {
           </div>
           <div className="footer-col">
             <h4>Tools</h4>
+            <Link to="/">GIF Background Remover</Link>
             <Link to="/tools/image-background-remover">Image Background Remover</Link>
-            <Link to="/tools/gif-background-remover">GIF Background Remover</Link>
+            <Link to="/tools">Tool hub</Link>
             <span className="muted">White Background — soon</span>
             <span className="muted">AI Scenes — soon</span>
           </div>

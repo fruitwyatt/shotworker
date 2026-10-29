@@ -11,7 +11,7 @@ const TOOLS = [
     icon: 'M4 5h16v14H4z M4 15l5-5 4 4 3-3 4 4',
   },
   {
-    to: '/tools/gif-background-remover',
+    to: '/',
     title: 'GIF Background Remover',
     desc: 'Remove the background from animated GIFs and export transparent APNG, GIF or WebP.',
     badge: 'Free',
@@ -73,7 +73,7 @@ const FAQ = [
   },
   {
     q: 'Are my images uploaded to a server?',
-    a: 'No. The AI matting model (~94 MB) is downloaded once to your browser and cached. All processing happens on your device — your files never leave your machine for inference.',
+    a: 'No. Everything runs on your device — your files never leave your machine. The first run may take a moment to prepare; later runs are faster.',
   },
   {
     q: 'What kind of images work best?',
@@ -125,7 +125,7 @@ export default function Home() {
             <Link to="/tools/image-background-remover" className="btn btn-primary btn-lg">
               Remove image background
             </Link>
-            <Link to="/tools/gif-background-remover" className="btn btn-outline btn-lg">
+            <Link to="/" className="btn btn-outline btn-lg">
               Remove GIF background
             </Link>
           </div>

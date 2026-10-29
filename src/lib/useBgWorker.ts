@@ -1,9 +1,10 @@
-// Shared worker lifecycle for the background-removal tools: spawn, warmup,
-// status bookkeeping, cancel (terminate + respawn). Tool-specific result
-// messages are delegated to the `handlers` callbacks.
+// Shared worker lifecycle for the background-removal tools: spawn on mount,
+// status bookkeeping, cancel (terminate + respawn). The AI model is loaded
+// lazily inside the worker on the first process/process-image message — never
+// on page enter. Tool-specific result messages go to `handlers` callbacks.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { WorkerInMessage, WorkerOutMessage } from '../worker/protocol';
+import type { WorkerOutMessage } from '../worker/protocol';
 
 export type Status =
   | { kind: 'idle' }
@@ -82,13 +83,13 @@ export function useBgWorker(handlers: WorkerHandlers) {
 
   useEffect(() => {
     const w = spawnWorker();
-    w.postMessage({ type: 'warmup' } satisfies WorkerInMessage);
+    // Do NOT warmup/download the model on mount — wait for first file.
     return () => w.terminate();
   }, [spawnWorker]);
 
-  /** Terminate the busy worker and respawn a fresh warmed one. */
+  /** Terminate the busy worker and respawn a fresh idle one (no model prefetch). */
   const cancel = useCallback(() => {
-    spawnWorker().postMessage({ type: 'warmup' } satisfies WorkerInMessage);
+    spawnWorker();
     setStatus({ kind: 'idle' });
   }, [spawnWorker]);
 
