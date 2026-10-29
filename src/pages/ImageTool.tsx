@@ -101,7 +101,10 @@ export default function ImageTool() {
     useBgWorker({ onImageDone, onImageRecolorDone });
 
   const busy =
-    status.kind === 'decoding' || status.kind === 'processing' || status.kind === 'encoding';
+    status.kind === 'downloading' ||
+    status.kind === 'decoding' ||
+    status.kind === 'processing' ||
+    status.kind === 'encoding';
 
   const send = useCallback(
     (buf: ArrayBuffer, name: string, mime: string) => {
