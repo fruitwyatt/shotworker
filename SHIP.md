@@ -61,3 +61,19 @@ in the zone, plus attach both hostnames in Pages → Custom domains.
 export CLOUDFLARE_ACCOUNT_ID=08c8b4657124c4adff729031926b450f
 npx wrangler@4 pages deploy dist --project-name=shotworker --commit-dirty=true
 ```
+
+
+## DNS status (updated by ship agent)
+
+Already created on zone `shotworker.com` (id `515a7a2f658b95cf8ef46603b186d7d0`):
+
+| Name | Type | Content | Proxied |
+|------|------|---------|---------|
+| `shotworker.com` | CNAME | `shotworker.pages.dev` | yes (CNAME flattening) |
+| `www.shotworker.com` | CNAME | `shotworker.com` | yes |
+
+Pages custom domains attached on project `shotworker`:
+- `shotworker.com` — verification active; HTTPS **200** live
+- `www.shotworker.com` — re-attached; SSL may still be initializing (intermittent 522 until cert active). `_redirects` has www→apex 301 once both hostnames are fully active.
+
+**For cf teammate:** domain bind mostly done by ship agent. Please confirm both custom domains show **Active** in Pages → Custom domains, and www→apex 301 works. If www stuck pending, re-validate in dashboard.
